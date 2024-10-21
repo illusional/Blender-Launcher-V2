@@ -203,6 +203,8 @@ class DownloadWidget(BaseBuildWidget):
             dist = library_folder / "stable"
         elif self.build_info.branch == "daily":
             dist = library_folder / "daily"
+        elif self.build_info.branch == "bforartists":
+            dist = library_folder / "bforartists"
         else:
             dist = library_folder / "experimental"
 

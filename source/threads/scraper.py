@@ -7,9 +7,10 @@ import logging
 import re
 from datetime import datetime, timezone
 from itertools import chain
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin
+import pickle
 
 import distro
 from bs4 import BeautifulSoup, SoupStrainer
@@ -26,6 +27,7 @@ from modules.settings import (
     get_minimum_blender_stable_version,
     get_scrape_automated_builds,
     get_scrape_stable_builds,
+    get_scrape_bfa_builds,
     get_show_daily_archive_builds,
     get_show_experimental_archive_builds,
     get_show_patch_archive_builds,
@@ -33,6 +35,7 @@ from modules.settings import (
 )
 from PyQt5.QtCore import QThread, pyqtSignal
 from semver import Version
+from webdav4.client import Client
 
 if TYPE_CHECKING:
     from modules.connection_manager import ConnectionManager
@@ -176,17 +179,22 @@ class Scraper(QThread):
 
         if self.platform == "Windows":
             regex_filter = r"blender-.+win.+64.+zip$"
+            bfa_regex_filter = r"Bforartists-.+Windows.+zip"
         elif self.platform == "macOS":
             regex_filter = r"blender-.+(macOS|darwin).+dmg$"
+            bfa_regex_filter = r"Bforartists-.+dmg$"
         else:
             regex_filter = r"blender-.+lin.+64.+tar+(?!.*sha256).*"
+            bfa_regex_filter = r"Bforartists-.+tar.xz$"
 
         self.b3d_link = re.compile(regex_filter, re.IGNORECASE)
         self.hash = re.compile(r"\w{12}")
         self.subversion = re.compile(r"-\d\.[a-zA-Z0-9.]+-")
+        self.bfa_package_file_name_regex = re.compile(bfa_regex_filter)
 
         self.scrape_stable = get_scrape_stable_builds()
         self.scrape_automated = get_scrape_automated_builds()
+        self.scrape_bfa = get_scrape_bfa_builds()
 
     def run(self):
         self.get_api_data_manager()
@@ -224,6 +232,8 @@ class Scraper(QThread):
             scrapers.append(self.scrap_stable_releases())
         if self.scrape_automated:
             scrapers.append(self.scrape_automated_releases())
+        if self.scrape_bfa:
+            scrapers.append(self.scrape_bfa_releases())
         for build in chain(*scrapers):
             self.links.emit(build)
 
@@ -439,3 +449,30 @@ class Scraper(QThread):
 
         r.release_conn()
         r.close()
+
+    def scrape_bfa_releases(self):
+        https_url = "https://cloud.bforartists.de/index.php/s"
+        webdav_url = "https://cloud.bforartists.de/public.php/webdav"
+        username = "JxCjbyt2fFcHjy4"
+
+        def get_https_download_url(path: PurePosixPath):
+            return f"{https_url}/{username}/download?path=/{path.parent}&files={path.name}"
+        
+        client = Client(webdav_url, auth=(username, ""))
+        for entry in client.ls("", detail=True, allow_listing_resource=True):
+            if isinstance(entry, str):
+                continue
+            if entry["type"] != "directory":
+                continue
+            try:
+                semver = Version.parse(entry["name"].split()[-1])
+            except ValueError:
+                continue
+
+            for entry in client.ls(entry["name"], detail=True, allow_listing_resource=True):
+                if isinstance(entry, str):
+                    continue
+                path = entry["name"]
+                ppath = PurePosixPath(path)
+                if self.bfa_package_file_name_regex.match(ppath.name) is not None:
+                    yield BuildInfo(get_https_download_url(ppath), str(Version.parse(ppath.parent.name.split()[-1])), None, datetime(2001, 8, 16).astimezone(), "bforartists")

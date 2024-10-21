@@ -38,6 +38,9 @@ class BaseBuildWidget(QWidget):
             v = re.sub(r"\D", "", str(self.build_info.semversion.finalize_version()))
 
             webbrowser.open(f"https://www.blender.org/download/lts/#lts-release-{v}")
+        elif self.build_info.branch == "bforartists":
+            # TODO
+            return
         else:  # Open for builds with D12345 name pattern
             # Extract only D12345 substring
             m = re.search(r"D\d{5}", self.build_info.branch)

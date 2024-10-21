@@ -36,6 +36,7 @@ from modules.settings import (
     get_quick_launch_key_seq,
     get_scrape_automated_builds,
     get_scrape_stable_builds,
+    get_scrape_bfa_builds,
     get_show_tray_icon,
     get_sync_library_and_downloads_pages,
     get_tray_icon_notified,
@@ -344,6 +345,17 @@ class BlenderLauncher(BaseWindow):
             self.LibraryExperimentalPageWidget, "Experimental"
         )
 
+        self.LibraryBFAPageWidget = BasePageWidget(
+            parent=self,
+            page_name="LibraryBFAListWidget",
+            time_label="Commit Time",
+            info_text="Nothing to show yet",
+            extended_selection=True,
+        )
+        self.LibraryBFAListWidget = self.LibraryToolBox.add_page_widget(
+            self.LibraryBFAPageWidget, "Bforartists"
+        )
+
         self.DownloadsStablePageWidget = BasePageWidget(
             parent=self,
             page_name="DownloadsStableListWidget",
@@ -368,6 +380,16 @@ class BlenderLauncher(BaseWindow):
         )
         self.DownloadsExperimentalListWidget = self.DownloadsToolBox.add_page_widget(
             self.DownloadsExperimentalPageWidget, "Experimental"
+        )
+
+        self.DownloadsBFAPageWidget = BasePageWidget(
+            parent=self,
+            page_name="DownloadsBFAListWidget",
+            time_label="Upload Time",
+            info_text="No new builds available"
+        )
+        self.DownloadsBFAListWidget = self.DownloadsToolBox.add_page_widget(
+            self.DownloadsBFAPageWidget, "Bforartists"
         )
 
         self.UserFavoritesListWidget = BasePageWidget(
@@ -713,6 +735,7 @@ class BlenderLauncher(BaseWindow):
             self.DownloadsStableListWidget.clear_()
             self.DownloadsDailyListWidget.clear_()
             self.DownloadsExperimentalListWidget.clear_()
+            self.DownloadsBFAListWidget.clear_()
             self.started = True
 
         self.favorite = None
@@ -720,6 +743,7 @@ class BlenderLauncher(BaseWindow):
         self.LibraryStableListWidget.clear_()
         self.LibraryDailyListWidget.clear_()
         self.LibraryExperimentalListWidget.clear_()
+        self.LibraryBFAListWidget.clear_()
         self.UserCustomListWidget.clear_()
 
         self.library_drawer = DrawLibraryTask()
@@ -762,19 +786,21 @@ class BlenderLauncher(BaseWindow):
 
     def force_check(self):
         if QApplication.queryKeyboardModifiers() & Qt.Modifier.SHIFT:  # Shift held while pressing check
-            # Ignore scrape_stable and scrape_automated settings
-            self.start_scraper(True, True)
+            # Ignore scrape_stable, scrape_automated and scrape_bfa settings
+            self.start_scraper(True, True, True)
         else:
             # Use settings
             self.start_scraper()
 
-    def start_scraper(self, scrape_stable=None, scrape_automated=None):
+    def start_scraper(self, scrape_stable=None, scrape_automated=None, scrape_bfa=None):
         self.set_status("Checking for new builds", False)
 
         if scrape_stable is None:
             scrape_stable = get_scrape_stable_builds()
         if scrape_automated is None:
             scrape_automated = get_scrape_automated_builds()
+        if scrape_bfa is None:
+            scrape_bfa = get_scrape_bfa_builds()
 
         if scrape_stable:
             self.DownloadsStablePageWidget.set_info_label_text("Checking for new builds")
@@ -789,11 +815,17 @@ class BlenderLauncher(BaseWindow):
         for page in self.DownloadsToolBox.pages:
             if page is not self.DownloadsStablePageWidget:
                 page.set_info_label_text(msg)
+        
+        if scrape_bfa:
+            self.DownloadsBFAPageWidget.set_info_label_text("Checking for new builds")
+        else:
+            self.DownloadsBFAPageWidget.set_info_label_text("Checking for Bforartists builds is disabled")
 
         # Sometimes these builds end up being invalid, particularly when new builds are available, which, there usually
         # are at least once every two days. They are so easily gathered there's little loss here
         self.DownloadsDailyListWidget.clear_()
         self.DownloadsExperimentalListWidget.clear_()
+        self.DownloadsBFAListWidget.clear_()
 
         self.cashed_builds.clear()
         self.new_downloads = False
@@ -854,6 +886,9 @@ class BlenderLauncher(BaseWindow):
         elif branch == "daily":
             downloads_list_widget = self.DownloadsDailyListWidget
             library_list_widget = self.LibraryDailyListWidget
+        elif branch == "bforartists":
+            downloads_list_widget = self.DownloadsBFAListWidget
+            library_list_widget = self.LibraryBFAListWidget
         else:
             downloads_list_widget = self.DownloadsExperimentalListWidget
             library_list_widget = self.LibraryExperimentalListWidget
@@ -886,6 +921,9 @@ class BlenderLauncher(BaseWindow):
         elif branch == "experimental":
             library = self.LibraryExperimentalListWidget
             download = self.DownloadsExperimentalListWidget
+        elif branch == "bforartists":
+            library = self.LibraryBFAListWidget
+            download = self.DownloadsBFAListWidget
         elif branch == "custom":
             library = self.UserCustomListWidget
             download = None
@@ -916,6 +954,8 @@ class BlenderLauncher(BaseWindow):
             list_widget = self.LibraryDailyListWidget
         elif branch == "experimental":
             list_widget = self.LibraryExperimentalListWidget
+        elif branch == "bforartists":
+            list_widget = self.LibraryBFAListWidget
         elif branch == "custom":
             list_widget = self.UserCustomListWidget
         else:
