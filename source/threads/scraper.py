@@ -190,7 +190,7 @@ class Scraper(QThread):
         self.b3d_link = re.compile(regex_filter, re.IGNORECASE)
         self.hash = re.compile(r"\w{12}")
         self.subversion = re.compile(r"-\d\.[a-zA-Z0-9.]+-")
-        self.bfa_package_file_name_regex = re.compile(bfa_regex_filter)
+        self.bfa_package_file_name_regex = re.compile(bfa_regex_filter, re.IGNORECASE)
 
         self.scrape_stable = get_scrape_stable_builds()
         self.scrape_automated = get_scrape_automated_builds()
