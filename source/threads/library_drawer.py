@@ -49,7 +49,7 @@ def get_blender_builds(folders: Iterable[str | Path]) -> Iterable[tuple[Path, bo
 
 @dataclass(frozen=True)
 class DrawLibraryTask(Task):
-    folders: Iterable[str | Path] = ("stable", "daily", "experimental", "custom")
+    folders: Iterable[str | Path] = ("stable", "daily", "experimental", "bforartists", "custom")
     found = pyqtSignal(Path)
     unrecognized = pyqtSignal(Path)
     finished = pyqtSignal()

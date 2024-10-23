@@ -267,6 +267,7 @@ class DownloadWidget(BaseBuildWidget):
                 build_hash=None,
                 commit_time=self.build_info.commit_time,
                 branch=self.build_info.branch,
+                custom_executable=self.build_info.custom_executable
             ),
             archive_name=archive_name,
         )
@@ -298,9 +299,15 @@ class DownloadWidget(BaseBuildWidget):
             assert self.source_file is not None
             self.parent.clear_temp(self.source_file)
 
-            name = f"{self.subversionLabel.text()} {self.branchLabel.text} {self.build_info.commit_time}"
+            if self.build_info.branch == "bforartists":
+                message = f"Bforartists {self.subversionLabel.text()} {self.build_info.commit_time}"
+            else:
+                name = f"{self.subversionLabel.text()} {self.branchLabel.text} {self.build_info.commit_time}"
+                message = f"Blender {name}"
+            message += " download finished!"
+
             self.parent.show_message(
-                f"Blender {name} download finished!",
+                message,
                 message_type=MessageType.DOWNLOADFINISHED,
             )
             self.setInstalled(widget)

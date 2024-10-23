@@ -474,5 +474,15 @@ class Scraper(QThread):
                     continue
                 path = entry["name"]
                 ppath = PurePosixPath(path)
-                if self.bfa_package_file_name_regex.match(ppath.name) is not None:
-                    yield BuildInfo(get_https_download_url(ppath), str(Version.parse(ppath.parent.name.split()[-1])), None, datetime(2001, 8, 16).astimezone(), "bforartists")
+                if self.bfa_package_file_name_regex.match(ppath.name) is None:
+                    continue
+                commit_time = entry["modified"]
+                if not isinstance(commit_time, datetime):
+                    continue
+
+                exe_name = {
+                    "Windows": "bforartists.exe",
+                    "Linux": "bforartists",
+                    "macOS": "Bforartists/Bforartists.app/Contents/MacOS/Bforartists",
+                }.get(get_platform(), "bforartists")
+                yield BuildInfo(get_https_download_url(ppath), str(semver), None, commit_time.astimezone(), "bforartists", custom_executable=exe_name)
