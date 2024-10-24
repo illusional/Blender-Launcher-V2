@@ -10,7 +10,6 @@ from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin
-import pickle
 
 import distro
 from bs4 import BeautifulSoup, SoupStrainer
