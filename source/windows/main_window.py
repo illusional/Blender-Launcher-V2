@@ -833,6 +833,7 @@ class BlenderLauncher(BaseWindow):
 
         self.scraper.scrape_stable = scrape_stable
         self.scraper.scrape_automated = scrape_automated
+        self.scraper.scrape_bfa = scrape_bfa
         self.scraper.manager = self.cm
         self.scraper.start()
 

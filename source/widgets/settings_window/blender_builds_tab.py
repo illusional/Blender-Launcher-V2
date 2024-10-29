@@ -14,6 +14,7 @@ from modules.settings import (
     get_platform,
     get_quick_launch_key_seq,
     get_scrape_automated_builds,
+    get_scrape_bfa_builds,
     get_scrape_stable_builds,
     get_show_daily_archive_builds,
     get_show_experimental_archive_builds,
@@ -30,6 +31,7 @@ from modules.settings import (
     set_new_builds_check_frequency,
     set_quick_launch_key_seq,
     set_scrape_automated_builds,
+    set_scrape_bfa_builds,
     set_scrape_stable_builds,
     set_show_daily_archive_builds,
     set_show_experimental_archive_builds,
@@ -121,6 +123,15 @@ class BlenderBuildsTabWidget(SettingsFormWidget):
             \nDEFAULT: On"
         )
 
+        self.ScrapeBfaBuilds = QCheckBox(self)
+        self.ScrapeBfaBuilds.setChecked(get_scrape_bfa_builds())
+        self.ScrapeBfaBuilds.clicked.connect(self.toggle_scrape_bfa_builds)
+        self.ScrapeBfaBuilds.setText("Scrape BforArtists builds")
+        self.ScrapeBfaBuilds.setToolTip(
+            "Scrape BForArtists builds, a popular Blender fork\
+            \nDEFAULT: On"
+        )
+
         # Show Archive Builds
         self.show_daily_archive_builds = QCheckBox(self)
         self.show_daily_archive_builds.setText("Show Daily Archived Builds")
@@ -156,9 +167,10 @@ class BlenderBuildsTabWidget(SettingsFormWidget):
         self.scraping_builds_layout.addWidget(self.MinStableBlenderVer, 2, 1, 1, 1)
         self.scraping_builds_layout.addWidget(self.ScrapeStableBuilds, 3, 0, 1, 2)
         self.scraping_builds_layout.addWidget(self.ScrapeAutomatedBuilds, 4, 0, 1, 2)
-        self.scraping_builds_layout.addWidget(self.show_daily_archive_builds, 5, 0, 1, 2)
-        self.scraping_builds_layout.addWidget(self.show_experimental_archive_builds, 6, 0, 1, 2)
-        self.scraping_builds_layout.addWidget(self.show_patch_archive_builds, 7, 0, 1, 2)
+        self.scraping_builds_layout.addWidget(self.ScrapeBfaBuilds, 5, 0, 1, 2)
+        self.scraping_builds_layout.addWidget(self.show_daily_archive_builds, 6, 0, 1, 2)
+        self.scraping_builds_layout.addWidget(self.show_experimental_archive_builds, 7, 0, 1, 2)
+        self.scraping_builds_layout.addWidget(self.show_patch_archive_builds, 8, 0, 1, 2)
         self.buildcheck_settings.setLayout(self.scraping_builds_layout)
 
         # Downloading builds settings
@@ -353,6 +365,10 @@ class BlenderBuildsTabWidget(SettingsFormWidget):
 
     def toggle_scrape_automated_builds(self, is_checked):
         set_scrape_automated_builds(is_checked)
+        self.ScrapeAutomatedBuilds.setChecked(is_checked)
+
+    def toggle_scrape_bfa_builds(self, is_checked):
+        set_scrape_bfa_builds(is_checked)
         self.ScrapeAutomatedBuilds.setChecked(is_checked)
 
     def toggle_show_daily_archive_builds(self, is_checked):
