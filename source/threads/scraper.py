@@ -25,8 +25,8 @@ from modules.scraper_cache import StableCache
 from modules.settings import (
     get_minimum_blender_stable_version,
     get_scrape_automated_builds,
-    get_scrape_stable_builds,
     get_scrape_bfa_builds,
+    get_scrape_stable_builds,
     get_show_daily_archive_builds,
     get_show_experimental_archive_builds,
     get_show_patch_archive_builds,
@@ -36,10 +36,21 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from semver import Version
 from webdav4.client import Client
 
+# NC: NextCloud
+BFA_NC_BASE_URL = "https://cloud.bforartists.de"
+BFA_NC_HTTPS_URL = f"{BFA_NC_BASE_URL}/index.php/s"
+# https://archive.ph/esTuX#accessing-public-shares-over-webdav
+BFA_NC_WEBDAV_URL = f"{BFA_NC_BASE_URL}/public.php/webdav"
+BFA_NC_WEBDAV_SHARE_TOKEN = "JxCjbyt2fFcHjy4"
+
 if TYPE_CHECKING:
     from modules.connection_manager import ConnectionManager
 
 logger = logging.getLogger()
+
+
+def get_bfa_nc_https_download_url(webdav_file_path: PurePosixPath):
+    return f"{BFA_NC_HTTPS_URL}/{BFA_NC_WEBDAV_SHARE_TOKEN}/download?path=/{webdav_file_path.parent}&files={webdav_file_path.name}"
 
 
 def get_release_tag(connection_manager: ConnectionManager) -> str | None:
@@ -450,14 +461,7 @@ class Scraper(QThread):
         r.close()
 
     def scrape_bfa_releases(self):
-        https_url = "https://cloud.bforartists.de/index.php/s"
-        webdav_url = "https://cloud.bforartists.de/public.php/webdav"
-        username = "JxCjbyt2fFcHjy4"
-
-        def get_https_download_url(path: PurePosixPath):
-            return f"{https_url}/{username}/download?path=/{path.parent}&files={path.name}"
-        
-        client = Client(webdav_url, auth=(username, ""))
+        client = Client(BFA_NC_WEBDAV_URL, auth=(BFA_NC_WEBDAV_SHARE_TOKEN, ""))
         for entry in client.ls("", detail=True, allow_listing_resource=True):
             if isinstance(entry, str):
                 continue
@@ -484,4 +488,11 @@ class Scraper(QThread):
                     "Linux": "bforartists",
                     "macOS": "Bforartists/Bforartists.app/Contents/MacOS/Bforartists",
                 }.get(get_platform(), "bforartists")
-                yield BuildInfo(get_https_download_url(ppath), str(semver), None, commit_time.astimezone(), "bforartists", custom_executable=exe_name)
+                yield BuildInfo(
+                    get_bfa_nc_https_download_url(ppath),
+                    str(semver),
+                    None,
+                    commit_time.astimezone(),
+                    "bforartists",
+                    custom_executable=exe_name,
+                )
