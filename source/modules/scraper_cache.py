@@ -74,7 +74,7 @@ class StableCache:
                 cache = json.load(f)
                 logging.debug(f"Loaded cache from {file!r}")
                 return cls.from_dict(cache)
-        except (json.decoder.JSONDecodeError) as e:
+        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
             logging.error(f"Failed to load cache {file}: {e}")
             return None
 
