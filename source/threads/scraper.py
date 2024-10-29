@@ -14,7 +14,12 @@ from urllib.parse import urljoin
 import dateparser
 import distro
 from bs4 import BeautifulSoup, SoupStrainer
-from modules._platform import get_architecture, get_platform, stable_cache_path
+from modules._platform import (
+    bfa_cache_path,
+    get_architecture,
+    get_platform,
+    stable_cache_path,
+)
 from modules.bl_api_manager import (
     dropdown_blender_version,
     lts_blender_version,
@@ -37,17 +42,17 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from semver import Version
 from webdav4.client import Client
 
+if TYPE_CHECKING:
+    from modules.connection_manager import ConnectionManager
+
+logger = logging.getLogger()
+
 # NC: NextCloud
 BFA_NC_BASE_URL = "https://cloud.bforartists.de"
 BFA_NC_HTTPS_URL = f"{BFA_NC_BASE_URL}/index.php/s"
 # https://archive.ph/esTuX#accessing-public-shares-over-webdav
 BFA_NC_WEBDAV_URL = f"{BFA_NC_BASE_URL}/public.php/webdav"
 BFA_NC_WEBDAV_SHARE_TOKEN = "JxCjbyt2fFcHjy4"
-
-if TYPE_CHECKING:
-    from modules.connection_manager import ConnectionManager
-
-logger = logging.getLogger()
 
 
 def get_bfa_nc_https_download_url(webdav_file_path: PurePosixPath):
@@ -173,6 +178,7 @@ class Scraper(QThread):
         self.architecture = get_architecture()
 
         self.cache_path = stable_cache_path()
+        self.bfa_cache_path = bfa_cache_path()
 
         if self.cache_path.exists():
             with stable_cache_path().open("r", encoding="utf-8") as f:
@@ -181,6 +187,14 @@ class Scraper(QThread):
                 logging.debug(f"Loaded cache from {self.cache_path!r}")
         else:
             self.cache = StableCache()
+
+        if self.bfa_cache_path.exists():
+            with self.bfa_cache_path.open("r", encoding="utf-8") as f:
+                cache = json.load(f)
+                self.bfa_cache = StableCache.from_dict(cache)
+                logging.debug(f"Loaded cache from {self.bfa_cache_path!r}")
+        else:
+            self.bfa_cache = StableCache()
 
         self.json_platform = {
             "Windows": "windows",
@@ -435,12 +449,13 @@ class Scraper(QThread):
                             folder = self.cache[ver]
 
                         if folder.modified_date != modified_date:
-                            builds = list(self.scrap_download_links(urljoin(url, href), "stable"))
+                            folder.assets.clear()
+                            for build in self.scrap_download_links(urljoin(url, href), "stable"):
+                                folder.assets.append(build)
+                                yield build
+
                             logger.debug(f"Caching {href}: {modified_date} (previous was {folder.modified_date})")
-
-                            folder.assets = builds
                             folder.modified_date = modified_date
-
                             cache_modified = True
                         else:
                             logger.debug(f"Skipping {href}: {modified_date}")
@@ -460,6 +475,7 @@ class Scraper(QThread):
 
     def scrape_bfa_releases(self):
         client = Client(BFA_NC_WEBDAV_URL, auth=(BFA_NC_WEBDAV_SHARE_TOKEN, ""))
+        cache_modified = False
         for entry in client.ls("", detail=True, allow_listing_resource=True):
             if isinstance(entry, str):
                 continue
@@ -470,27 +486,51 @@ class Scraper(QThread):
             except ValueError:
                 continue
 
-            for entry in client.ls(entry["name"], detail=True, allow_listing_resource=True):
-                if isinstance(entry, str):
-                    continue
-                path = entry["name"]
-                ppath = PurePosixPath(path)
-                if self.bfa_package_file_name_regex.match(ppath.name) is None:
-                    continue
-                commit_time = entry["modified"]
-                if not isinstance(commit_time, datetime):
-                    continue
+            # check if the cache needs to be updated
+            modified_date: datetime = entry["modified"]
+            if semver not in self.bfa_cache:
+                folder = self.bfa_cache.new_build(semver)
+            else:
+                folder = self.bfa_cache[semver]
 
-                exe_name = {
-                    "Windows": "bforartists.exe",
-                    "Linux": "bforartists",
-                    "macOS": "Bforartists/Bforartists.app/Contents/MacOS/Bforartists",
-                }.get(get_platform(), "bforartists")
-                yield BuildInfo(
-                    get_bfa_nc_https_download_url(ppath),
-                    str(semver),
-                    None,
-                    commit_time.astimezone(),
-                    "bforartists",
-                    custom_executable=exe_name,
-                )
+            if folder.modified_date < modified_date:
+                for release in self.scrape_bfa_release(client, entry["name"], semver):
+                    folder.assets.append(release)
+                    yield release
+
+                folder.modified_date = modified_date
+                cache_modified = True
+            else:
+                logger.debug(f"Skipping {entry['name']}: {modified_date}")
+                yield from folder.assets
+
+        if cache_modified:
+            with self.bfa_cache_path.open("w", encoding="utf-8") as f:
+                json.dump(self.bfa_cache.to_dict(), f)
+                logging.debug(f"Saved cache to {self.bfa_cache_path}")
+
+    def scrape_bfa_release(self, client: Client, folder: str, semver: Version):
+        for entry in client.ls(folder, detail=True, allow_listing_resource=True):
+            if isinstance(entry, str):
+                continue
+            path = entry["name"]
+            ppath = PurePosixPath(path)
+            if self.bfa_package_file_name_regex.match(ppath.name) is None:
+                continue
+            commit_time = entry["modified"]
+            if not isinstance(commit_time, datetime):
+                continue
+
+            exe_name = {
+                "Windows": "bforartists.exe",
+                "Linux": "bforartists",
+                "macOS": "Bforartists/Bforartists.app/Contents/MacOS/Bforartists",
+            }.get(get_platform(), "bforartists")
+            yield BuildInfo(
+                get_bfa_nc_https_download_url(ppath),
+                str(semver),
+                None,
+                commit_time.astimezone(),
+                "bforartists",
+                custom_executable=exe_name,
+            )

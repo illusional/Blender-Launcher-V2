@@ -227,3 +227,6 @@ def get_cache_path():
 
 def stable_cache_path():
     return Path(get_cache_path(), "stable_builds.json")
+
+def bfa_cache_path():
+    return Path(get_cache_path(), "bforartists_builds.json")
