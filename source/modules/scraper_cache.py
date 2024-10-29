@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import contextlib
+import json
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from modules.build_info import BuildInfo
 from modules.settings import EPOCH
 from semver import Version
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # Template of stable response for reference:
 STABLE_TEMPLATE = """
@@ -60,10 +67,28 @@ class StableCache:
         return folder
 
     @classmethod
+    def try_from_file(cls, file: Path):
+        """ Tries to load a cache from a file. If it fails, returns None"""
+        try:
+            with file.open(encoding="utf-8") as f:
+                cache = json.load(f)
+                logging.debug(f"Loaded cache from {file!r}")
+                return cls.from_dict(cache)
+        except (json.decoder.JSONDecodeError) as e:
+            logging.error(f"Failed to load cache {file}: {e}")
+            return None
+
+    @classmethod
+    def from_file_or_default(cls, file: Path):
+        """ Tries to load a cache from a file. If it fails, returns an empty StableCache"""
+        return c if (c := cls.try_from_file(file)) is not None else cls()
+
+    @classmethod
     def from_dict(cls, dct: dict):
         return cls(
             folders={
-                Version.parse(version): StableFolder.from_dict(value) for version, value in dct["folders"].items()
+                Version.parse(version): StableFolder.from_dict(value)
+                for version, value in dct.get("folders", {}).items()
             },
         )
 

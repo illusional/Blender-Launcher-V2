@@ -180,21 +180,8 @@ class Scraper(QThread):
         self.cache_path = stable_cache_path()
         self.bfa_cache_path = bfa_cache_path()
 
-        if self.cache_path.exists():
-            with stable_cache_path().open("r", encoding="utf-8") as f:
-                cache = json.load(f)
-                self.cache = StableCache.from_dict(cache)
-                logging.debug(f"Loaded cache from {self.cache_path!r}")
-        else:
-            self.cache = StableCache()
-
-        if self.bfa_cache_path.exists():
-            with self.bfa_cache_path.open("r", encoding="utf-8") as f:
-                cache = json.load(f)
-                self.bfa_cache = StableCache.from_dict(cache)
-                logging.debug(f"Loaded cache from {self.bfa_cache_path!r}")
-        else:
-            self.bfa_cache = StableCache()
+        self.cache = StableCache.from_file_or_default(self.cache_path)
+        self.bfa_cache = StableCache.from_file_or_default(self.bfa_cache_path)
 
         self.json_platform = {
             "Windows": "windows",
