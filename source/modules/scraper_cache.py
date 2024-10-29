@@ -52,7 +52,7 @@ class StableFolder:
 
 
 @dataclass
-class StableCache:
+class ScraperCache:
     folders: dict[Version, StableFolder] = field(default_factory=dict)
 
     def __contains__(self, ver: Version) -> bool:
@@ -74,7 +74,7 @@ class StableCache:
                 cache = json.load(f)
                 logging.debug(f"Loaded cache from {file!r}")
                 return cls.from_dict(cache)
-        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
+        except (json.decoder.JSONDecodeError, FileNotFoundError, OSError) as e:
             logging.error(f"Failed to load cache {file}: {e}")
             return None
 

@@ -27,7 +27,7 @@ from modules.bl_api_manager import (
     update_stable_builds_cache,
 )
 from modules.build_info import BuildInfo, parse_blender_ver
-from modules.scraper_cache import StableCache
+from modules.scraper_cache import ScraperCache
 from modules.settings import (
     get_minimum_blender_stable_version,
     get_scrape_automated_builds,
@@ -180,8 +180,8 @@ class Scraper(QThread):
         self.cache_path = stable_cache_path()
         self.bfa_cache_path = bfa_cache_path()
 
-        self.cache = StableCache.from_file_or_default(self.cache_path)
-        self.bfa_cache = StableCache.from_file_or_default(self.bfa_cache_path)
+        self.cache = ScraperCache.from_file_or_default(self.cache_path)
+        self.bfa_cache = ScraperCache.from_file_or_default(self.bfa_cache_path)
 
         self.json_platform = {
             "Windows": "windows",
