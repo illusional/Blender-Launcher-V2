@@ -7,7 +7,7 @@ import logging
 import re
 from datetime import datetime, timezone
 from itertools import chain
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
@@ -26,6 +26,7 @@ from modules.scraper_cache import StableCache
 from modules.settings import (
     get_minimum_blender_stable_version,
     get_scrape_automated_builds,
+    get_scrape_bfa_builds,
     get_scrape_stable_builds,
     get_show_daily_archive_builds,
     get_show_experimental_archive_builds,
@@ -34,11 +35,23 @@ from modules.settings import (
 )
 from PyQt5.QtCore import QThread, pyqtSignal
 from semver import Version
+from webdav4.client import Client
+
+# NC: NextCloud
+BFA_NC_BASE_URL = "https://cloud.bforartists.de"
+BFA_NC_HTTPS_URL = f"{BFA_NC_BASE_URL}/index.php/s"
+# https://archive.ph/esTuX#accessing-public-shares-over-webdav
+BFA_NC_WEBDAV_URL = f"{BFA_NC_BASE_URL}/public.php/webdav"
+BFA_NC_WEBDAV_SHARE_TOKEN = "JxCjbyt2fFcHjy4"
 
 if TYPE_CHECKING:
     from modules.connection_manager import ConnectionManager
 
 logger = logging.getLogger()
+
+
+def get_bfa_nc_https_download_url(webdav_file_path: PurePosixPath):
+    return f"{BFA_NC_HTTPS_URL}/{BFA_NC_WEBDAV_SHARE_TOKEN}/download?path=/{webdav_file_path.parent}&files={webdav_file_path.name}"
 
 
 def get_release_tag(connection_manager: ConnectionManager) -> str | None:
@@ -177,17 +190,22 @@ class Scraper(QThread):
 
         if self.platform == "Windows":
             regex_filter = r"blender-.+win.+64.+zip$"
+            bfa_regex_filter = r"Bforartists-.+Windows.+zip"
         elif self.platform == "macOS":
             regex_filter = r"blender-.+(macOS|darwin).+dmg$"
+            bfa_regex_filter = r"Bforartists-.+dmg$"
         else:
             regex_filter = r"blender-.+lin.+64.+tar+(?!.*sha256).*"
+            bfa_regex_filter = r"Bforartists-.+tar.xz$"
 
         self.b3d_link = re.compile(regex_filter, re.IGNORECASE)
         self.hash = re.compile(r"\w{12}")
         self.subversion = re.compile(r"-\d\.[a-zA-Z0-9.]+-")
+        self.bfa_package_file_name_regex = re.compile(bfa_regex_filter, re.IGNORECASE)
 
         self.scrape_stable = get_scrape_stable_builds()
         self.scrape_automated = get_scrape_automated_builds()
+        self.scrape_bfa = get_scrape_bfa_builds()
 
     def run(self):
         self.get_api_data_manager()
@@ -224,6 +242,8 @@ class Scraper(QThread):
             scrapers.append(self.scrap_stable_releases())
         if self.scrape_automated:
             scrapers.append(self.scrape_automated_releases())
+        if self.scrape_bfa:
+            scrapers.append(self.scrape_bfa_releases())
         for build in chain(*scrapers):
             self.links.emit(build)
 
@@ -437,3 +457,40 @@ class Scraper(QThread):
 
         r.release_conn()
         r.close()
+
+    def scrape_bfa_releases(self):
+        client = Client(BFA_NC_WEBDAV_URL, auth=(BFA_NC_WEBDAV_SHARE_TOKEN, ""))
+        for entry in client.ls("", detail=True, allow_listing_resource=True):
+            if isinstance(entry, str):
+                continue
+            if entry["type"] != "directory":
+                continue
+            try:
+                semver = Version.parse(entry["name"].split()[-1])
+            except ValueError:
+                continue
+
+            for entry in client.ls(entry["name"], detail=True, allow_listing_resource=True):
+                if isinstance(entry, str):
+                    continue
+                path = entry["name"]
+                ppath = PurePosixPath(path)
+                if self.bfa_package_file_name_regex.match(ppath.name) is None:
+                    continue
+                commit_time = entry["modified"]
+                if not isinstance(commit_time, datetime):
+                    continue
+
+                exe_name = {
+                    "Windows": "bforartists.exe",
+                    "Linux": "bforartists",
+                    "macOS": "Bforartists/Bforartists.app/Contents/MacOS/Bforartists",
+                }.get(get_platform(), "bforartists")
+                yield BuildInfo(
+                    get_bfa_nc_https_download_url(ppath),
+                    str(semver),
+                    None,
+                    commit_time.astimezone(),
+                    "bforartists",
+                    custom_executable=exe_name,
+                )

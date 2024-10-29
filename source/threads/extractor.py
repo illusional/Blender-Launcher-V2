@@ -46,9 +46,14 @@ def extract(source: Path, destination: Path, progress_callback: Callable[[int, i
 
         if not dist.is_dir():
             dist.mkdir()
+        
+        if "bforartists" in source.stem.lower():
+            app_name = "Bforartists"
+        else:
+            app_name = "Blender"
 
-        _check_call(["cp", "-R", "/Volumes/Blender", dist.as_posix()])
-        _check_call(["hdiutil", "unmount", "/Volumes/Blender"])
+        _check_call(["cp", "-R", f"/Volumes/{app_name}", dist.as_posix()])
+        _check_call(["hdiutil", "unmount", f"/Volumes/{app_name}"])
 
         return dist
     return None

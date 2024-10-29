@@ -279,7 +279,7 @@ class LibraryWidget(BaseBuildWidget):
         self.menu.addAction(self.installTemplateAction)
         self.menu.addSeparator()
 
-        if self.branch in "stable lts":
+        if self.branch in ("stable", "lts", "bforartists"):
             self.menu.addAction(self.showReleaseNotesAction)
         else:
             regexp = re.compile(r"D\d{5}")

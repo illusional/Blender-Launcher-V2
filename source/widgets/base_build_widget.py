@@ -1,11 +1,14 @@
 import abc
 import re
 import webbrowser
+from pathlib import PurePosixPath
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QWidget
 from widgets.base_menu_widget import BaseMenuWidget
+from threads.scraper import BFA_NC_WEBDAV_URL, BFA_NC_WEBDAV_SHARE_TOKEN, get_bfa_nc_https_download_url
+from webdav4.client import Client
 
 
 class BaseBuildWidget(QWidget):
@@ -38,6 +41,17 @@ class BaseBuildWidget(QWidget):
             v = re.sub(r"\D", "", str(self.build_info.semversion.finalize_version()))
 
             webbrowser.open(f"https://www.blender.org/download/lts/#lts-release-{v}")
+        elif self.build_info.branch == "bforartists":
+            ver = self.build_info.semversion
+            client = Client(BFA_NC_WEBDAV_URL, auth=(BFA_NC_WEBDAV_SHARE_TOKEN, ""))
+            try:
+                entries = client.ls(f"/Bforartists {ver.major}.{ver.minor}.{ver.patch}", detail=True, allow_listing_resource=True)
+                for e in entries:
+                    path = PurePosixPath(e["name"])
+                    if path.name.lower().startswith("releasenotes"):
+                        webbrowser.open(get_bfa_nc_https_download_url(path))
+            except Exception:
+                pass
         else:  # Open for builds with D12345 name pattern
             # Extract only D12345 substring
             m = re.search(r"D\d{5}", self.build_info.branch)

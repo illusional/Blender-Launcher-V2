@@ -464,6 +464,14 @@ def set_scrape_automated_builds(b: bool):
     get_settings().setValue("scrape_automated_builds", b)
 
 
+def get_scrape_bfa_builds() -> bool:
+    return get_settings().value("scrape_bfa_builds", defaultValue=True, type=bool)
+
+
+def set_scrape_bfa_builds(b: bool):
+    get_settings().setValue("scrape_bfa_builds", b)
+
+
 def get_show_daily_archive_builds() -> bool:
     return get_settings().value("show_daily_archive_builds", defaultValue=False, type=bool)
 
