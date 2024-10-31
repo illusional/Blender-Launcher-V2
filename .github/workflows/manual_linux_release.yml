@@ -32,8 +32,13 @@ jobs:
           echo "Zipping to Blender_Launcher_${{ env.RELEASE_VERSION }}_Ubuntu_x64.zip"
           cd ./dist/release/
           zip Blender_Launcher_${{ env.RELEASE_VERSION }}_Ubuntu_x64.zip "./Blender Launcher"
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./dist/release/Blender_Launcher_${{ env.RELEASE_VERSION }}_Ubuntu_x64.zip
-          prerelease: true
+      - name: Upload to Latest Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No existing release found. Please create a release first."
+            exit 1
+          fi
+          gh release upload $LATEST_TAG ./dist/release/Blender_Launcher_${{ env.RELEASE_VERSION }}_Ubuntu_x64.zip
