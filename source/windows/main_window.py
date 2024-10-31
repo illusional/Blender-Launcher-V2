@@ -117,9 +117,9 @@ class BlenderLauncher(BaseWindow):
 
     def __init__(self, app: QApplication, version: Version, offline: bool = False):
         super().__init__(app=app, version=version)
-        self.resize(640, 480)
+        self.resize(800, 700)
         self.setMinimumSize(QSize(640, 480))
-        self.setMaximumWidth(1024)
+        self.setMaximumWidth(1250)
         widget = QWidget(self)
         self.CentralLayout = QVBoxLayout(widget)
         self.CentralLayout.setContentsMargins(1, 1, 1, 1)
@@ -207,8 +207,6 @@ class BlenderLauncher(BaseWindow):
 
     def __dont_show_resources_warning_again(self):
         set_dont_show_resource_warning(True)
-
-
 
     def prompt_library_folder(self):
         library_folder = get_cwd().as_posix()
@@ -371,9 +369,7 @@ class BlenderLauncher(BaseWindow):
             info_text="Nothing to show yet",
             extended_selection=True,
         )
-        self.LibraryBFAListWidget = self.LibraryToolBox.add_page_widget(
-            self.LibraryBFAPageWidget, "Bforartists"
-        )
+        self.LibraryBFAListWidget = self.LibraryToolBox.add_page_widget(self.LibraryBFAPageWidget, "Bforartists")
 
         self.DownloadsStablePageWidget = BasePageWidget(
             parent=self,
@@ -405,11 +401,9 @@ class BlenderLauncher(BaseWindow):
             parent=self,
             page_name="DownloadsBFAListWidget",
             time_label="Upload Time",
-            info_text="No new builds available"
+            info_text="No new builds available",
         )
-        self.DownloadsBFAListWidget = self.DownloadsToolBox.add_page_widget(
-            self.DownloadsBFAPageWidget, "Bforartists"
-        )
+        self.DownloadsBFAListWidget = self.DownloadsToolBox.add_page_widget(self.DownloadsBFAPageWidget, "Bforartists")
 
         self.UserFavoritesListWidget = BasePageWidget(
             parent=self, page_name="UserFavoritesListWidget", time_label="Commit Time", info_text="Nothing to show yet"
@@ -834,7 +828,7 @@ class BlenderLauncher(BaseWindow):
         for page in self.DownloadsToolBox.pages:
             if page is not self.DownloadsStablePageWidget:
                 page.set_info_label_text(msg)
-        
+
         if scrape_bfa:
             self.DownloadsBFAPageWidget.set_info_label_text("Checking for new builds")
         else:
