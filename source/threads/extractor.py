@@ -46,7 +46,7 @@ def extract(source: Path, destination: Path, progress_callback: Callable[[int, i
 
         if not dist.is_dir():
             dist.mkdir()
-        
+
         if "bforartists" in source.stem.lower():
             app_name = "Bforartists"
         else:

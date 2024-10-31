@@ -68,7 +68,7 @@ class ScraperCache:
 
     @classmethod
     def try_from_file(cls, file: Path):
-        """ Tries to load a cache from a file. If it fails, returns None"""
+        """Tries to load a cache from a file. If it fails, returns None"""
         try:
             with file.open(encoding="utf-8") as f:
                 cache = json.load(f)
@@ -80,7 +80,7 @@ class ScraperCache:
 
     @classmethod
     def from_file_or_default(cls, file: Path):
-        """ Tries to load a cache from a file. If it fails, returns an empty StableCache"""
+        """Tries to load a cache from a file. If it fails, returns an empty StableCache"""
         return c if (c := cls.try_from_file(file)) is not None else cls()
 
     @classmethod

@@ -6,9 +6,9 @@ from pathlib import PurePosixPath
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QWidget
-from widgets.base_menu_widget import BaseMenuWidget
-from threads.scraper import BFA_NC_WEBDAV_URL, BFA_NC_WEBDAV_SHARE_TOKEN, get_bfa_nc_https_download_url
+from threads.scraper import BFA_NC_WEBDAV_SHARE_TOKEN, BFA_NC_WEBDAV_URL, get_bfa_nc_https_download_url
 from webdav4.client import Client
+from widgets.base_menu_widget import BaseMenuWidget
 
 
 class BaseBuildWidget(QWidget):
@@ -45,7 +45,9 @@ class BaseBuildWidget(QWidget):
             ver = self.build_info.semversion
             client = Client(BFA_NC_WEBDAV_URL, auth=(BFA_NC_WEBDAV_SHARE_TOKEN, ""))
             try:
-                entries = client.ls(f"/Bforartists {ver.major}.{ver.minor}.{ver.patch}", detail=True, allow_listing_resource=True)
+                entries = client.ls(
+                    f"/Bforartists {ver.major}.{ver.minor}.{ver.patch}", detail=True, allow_listing_resource=True
+                )
                 for e in entries:
                     path = PurePosixPath(e["name"])
                     if path.name.lower().startswith("releasenotes"):

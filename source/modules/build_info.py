@@ -254,7 +254,6 @@ class BuildInfo:
 
 
 def fill_blender_info(exe: Path, info: BuildInfo | None = None) -> tuple[datetime, str, str, str]:
-
     version = _check_output([exe.as_posix(), "-v"]).decode("UTF-8")
     build_hash = ""
     subversion = ""
@@ -287,7 +286,6 @@ def fill_blender_info(exe: Path, info: BuildInfo | None = None) -> tuple[datetim
     else:
         s = version.splitlines()[0].strip()
         custom_name, subversion = s.rsplit(" ", 1)
-
 
     return (
         strptime,

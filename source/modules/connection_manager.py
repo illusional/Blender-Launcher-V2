@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import logging
 import ssl
 import sys
-import logging
 from typing import TYPE_CHECKING, Union
 
 from modules._platform import get_cwd, get_platform_full, is_frozen

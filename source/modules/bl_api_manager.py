@@ -42,12 +42,12 @@ def update_stable_builds_cache(data):
     # If data no data from the API have been retrieve, read from the internal API file
     if data is None and internal_stable_build_path.is_file():
         try:
-            with open(stable_build_path, "r") as f:
+            with open(stable_build_path) as f:
                 data = json.load(f)
         except OSError as e:
             logger.error(f"Failed to write API file: {e}")
     if data is None:
-        logger.error(f"Unable to retrieve online build API data and no internal API file found.")
+        logger.error("Unable to retrieve online build API data and no internal API file found.")
         return
     if not stable_build_path.is_file():
         try:
@@ -58,7 +58,7 @@ def update_stable_builds_cache(data):
             logger.error(f"Failed to write API file: {e}")
     else:
         try:
-            with open(stable_build_path, "r") as f:
+            with open(stable_build_path) as f:
                 current_data = json.load(f)
                 current_data.update(data)
             with open(stable_build_path, "w") as f:

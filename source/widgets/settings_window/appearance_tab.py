@@ -54,7 +54,7 @@ class AppearanceTabWidget(SettingsFormWidget):
         self.EnableHighDpiScalingCheckBox.setText("Enable High DPI Scaling")
         self.EnableHighDpiScalingCheckBox.setToolTip(
             "Enable high DPI scaling for the application\
-            \nautomatically scale the user interface based on the monitor’s pixel density\
+            \nautomatically scale the user interface based on the monitor's pixel density\
             \nDEFAULT: True"
         )
         self.EnableHighDpiScalingCheckBox.clicked.connect(self.toggle_enable_high_dpi_scaling)

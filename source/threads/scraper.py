@@ -147,7 +147,7 @@ def get_api_data(connection_manager: ConnectionManager, file: str) -> str | None
         logger.error(f"Failed to parse {file} API JSON data: {e}")
         return None
 
-    file_content = data["content"] if "content" in data else None
+    file_content = data.get("content")
     file_content_encoding = data.get("encoding")
 
     if file_content_encoding == "base64" and file_content:
@@ -237,7 +237,6 @@ class Scraper(QThread):
         self.manager.manager.clear()
 
     def get_download_links(self):
-
         scrapers = []
         if self.scrape_stable:
             scrapers.append(self.scrap_stable_releases())
@@ -247,7 +246,6 @@ class Scraper(QThread):
             scrapers.append(self.scrape_bfa_releases())
         for build in chain(*scrapers):
             self.links.emit(build)
-
 
     def scrape_automated_releases(self):
         base_fmt = "https://builder.blender.org/download/{}/?format=json&v=1"

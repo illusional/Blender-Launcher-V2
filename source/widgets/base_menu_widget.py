@@ -50,12 +50,13 @@ class BaseMenuWidget(QMenu):
         self.exec_(cursor)
 
     def enable_shifting(self):
-        """ This is an optional feature because it can be very expensive to do this all the time. """
+        """This is an optional feature because it can be very expensive to do this all the time."""
         self.installEventFilter(self)
-
 
     def eventFilter(self, obj, event):
         if isinstance(event, QKeyEvent):
-            self.holding_shift.emit(event.modifiers() in (Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier.ControlModifier))
+            self.holding_shift.emit(
+                event.modifiers() in (Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier.ControlModifier)
+            )
 
         return super().eventFilter(obj, event)

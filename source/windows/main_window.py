@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from items.base_list_widget_item import BaseListWidgetItem
 from modules._platform import _popen, get_cwd, get_launcher_name, get_platform, is_frozen
+from modules._resources_rc import RESOURCES_AVAILABLE
 from modules.connection_manager import ConnectionManager
 from modules.enums import MessageType
 from modules.settings import (
@@ -36,8 +37,8 @@ from modules.settings import (
     get_proxy_type,
     get_quick_launch_key_seq,
     get_scrape_automated_builds,
-    get_scrape_stable_builds,
     get_scrape_bfa_builds,
+    get_scrape_stable_builds,
     get_show_tray_icon,
     get_sync_library_and_downloads_pages,
     get_tray_icon_notified,
@@ -66,7 +67,6 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 from semver import Version
-from modules._resources_rc import RESOURCES_AVAILABLE
 from threads.library_drawer import DrawLibraryTask
 from threads.remover import RemovalTask
 from threads.scraper import Scraper

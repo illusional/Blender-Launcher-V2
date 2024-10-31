@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from modules.icons import Icons
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-
 from PyQt5.QtWidgets import (
     QCheckBox,
     QFrame,

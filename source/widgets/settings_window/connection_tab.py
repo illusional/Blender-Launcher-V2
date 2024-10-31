@@ -17,7 +17,7 @@ from modules.settings import (
 )
 from PyQt5 import QtGui
 from PyQt5.QtCore import QRegExp, Qt
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QGridLayout
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QLineEdit
 from widgets.settings_form_widget import SettingsFormWidget
 
 from .settings_group import SettingsGroup

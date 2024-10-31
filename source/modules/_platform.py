@@ -42,7 +42,6 @@ def get_platform_full():
     return f"{get_platform()}-{platform.release()}"
 
 
-
 def show_windows_help(parser: argparse.ArgumentParser):
     with (
         NamedTemporaryFile("w+", suffix=".bat", delete=False) as f,
@@ -227,6 +226,7 @@ def get_cache_path():
 
 def stable_cache_path():
     return Path(get_cache_path(), "stable_builds.json")
+
 
 def bfa_cache_path():
     return Path(get_cache_path(), "bforartists_builds.json")

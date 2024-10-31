@@ -527,7 +527,6 @@ class LibraryWidget(BaseBuildWidget):
 
     @QtCore.pyqtSlot()
     def ask_remove_from_drive(self):
-
         # if not shift clicked, ask to send to trash instead of deleting
         mod = QApplication.keyboardModifiers()
         if mod not in (Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier.ControlModifier):
