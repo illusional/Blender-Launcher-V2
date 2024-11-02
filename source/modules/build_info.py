@@ -11,7 +11,7 @@ from pathlib import Path
 
 import dateparser
 from modules._platform import _check_output, _popen, get_platform
-from modules.bl_api_manager import lts_blender_version
+from modules.bl_api_manager import lts_blender_version, read_blender_version_list
 from modules.settings import (
     get_bash_arguments,
     get_blender_startup_arguments,
@@ -147,6 +147,10 @@ class BuildInfo:
     @property
     def display_label(self):
         return self._display_label(self.branch, self.semversion, self.subversion)
+
+    @property
+    def bforartist_version_matcher(self):
+        return bfa_version_matcher(self.semversion)
 
     @staticmethod
     @cache
@@ -508,3 +512,15 @@ def launch_build(info: BuildInfo, exe=None, launch_mode: LaunchMode | None = Non
     args = get_args(info, exe, launch_mode)
     logger.debug(f"Running build with args {args!s}")
     return _popen(args)
+
+
+def bfa_version_matcher(blender_version: Version) -> Version:
+    versions = list(read_blender_version_list().keys())
+    blender_version = f"{blender_version.major}.{blender_version.minor}"
+    for i, version in enumerate(versions):
+        if blender_version in version:
+            if i + 1 < len(versions) and i > 0:
+                return Version.parse(versions[i - 1], optional_minor_and_patch=True)
+            else:
+                return None
+    return None

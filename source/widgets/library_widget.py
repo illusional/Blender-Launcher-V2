@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import subprocess
+import semver
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -751,15 +752,24 @@ class LibraryWidget(BaseBuildWidget):
         path = library_folder / self.link
         self.show_folder(path)
 
+    # TODO: if no version or version folder is available show a popup with option to open general config folder
     def show_config_folder(self):
-        self.build_info is not None
-        version = self.build_info.subversion
+        if self.build_info is None:
+            return
+        version = self.build_info.semversion
+        branch = self.build_info.branch
+        custom_folder = None
 
-        if version.count(".") > 1:
-            version = version.rsplit(".", 1)[0]
+        if branch == "bforartists":
+            custom_folder = "bforartists"
+            version = self.build_info.bforartist_version_matcher
 
-        version = version.split(" ", 1)[0]
-        path = Path(get_blender_config_folder() / version)
+        if version is None:
+            version_str = ""
+        else:
+            version_str = f"{version.major}.{version.minor}"
+
+        path = Path(get_blender_config_folder(custom_folder) / version_str)
         self.show_folder(path)
 
     def list_widget_deleted(self):
