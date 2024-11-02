@@ -1,24 +1,25 @@
 {
-    "api_file_version": "1.0",
-    "blender_versions": {
-        "4.2": "LTS",
-        "4.1": "non-LTS",
-        "4.0": "non-LTS",
-        "3.6": "LTS",
-        "3.5": "non-LTS",
-        "3.4": "non-LTS",
-        "3.3": "LTS",
-        "3.2": "non-LTS",
-        "3.1": "non-LTS",
-        "3.0": "non-LTS",
-        "2.93": "LTS",
-        "2.92": "non-LTS",
-        "2.91": "non-LTS",
-        "2.90": "non-LTS",
-        "2.83": "LTS",
-        "2.82": "non-LTS",
-        "2.81": "non-LTS",
-        "2.80": "non-LTS",
-        "2.79": "non-LTS"
-    }
+  "api_file_version": "1.0",
+  "blender_versions": {
+    "4.3": "non-LTS",
+    "4.2": "LTS",
+    "4.1": "non-LTS",
+    "4.0": "non-LTS",
+    "3.6": "LTS",
+    "3.5": "non-LTS",
+    "3.4": "non-LTS",
+    "3.3": "LTS",
+    "3.2": "non-LTS",
+    "3.1": "non-LTS",
+    "3.0": "non-LTS",
+    "2.93": "LTS",
+    "2.92": "non-LTS",
+    "2.91": "non-LTS",
+    "2.90": "non-LTS",
+    "2.83": "LTS",
+    "2.82": "non-LTS",
+    "2.81": "non-LTS",
+    "2.80": "non-LTS",
+    "2.79": "non-LTS"
+  }
 }

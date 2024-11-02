@@ -230,3 +230,24 @@ def stable_cache_path():
 
 def bfa_cache_path():
     return Path(get_cache_path(), "bforartists_builds.json")
+
+
+def get_blender_config_folder(custom_folder: str = None):
+    """
+    Retrieves the Blender configuration folder.
+    :param custom_folder: Optional; a custom folder name use to locate fork blender configuration folder.
+    """
+    platform = get_platform()
+    folder_name = "blender"
+    parent_folder_name = "Blender Foundation"
+
+    if custom_folder:
+        folder_name = custom_folder
+        parent_folder_name = custom_folder
+
+    if platform == "Windows":
+        return Path(os.getenv("APPDATA"), parent_folder_name, folder_name)
+    elif platform == "Linux":
+        return Path(os.path.expanduser("~/.config"), folder_name)
+    elif platform == "macOS":
+        return Path(os.path.expanduser("~/Library/Application Support"), folder_name)
