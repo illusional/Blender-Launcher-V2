@@ -26,7 +26,7 @@ def create_shortcut(folder, name):
         if getattr(sys, "frozen", False):
             icon = sys._MEIPASS + "/files/winblender.ico"  # noqa: SLF001
         else:
-            icon = Path("./resources/icons/winblender.ico").resolve().as_posix()
+            icon = Path("./source/resources/icons/winblender.ico").resolve().as_posix()
 
         icon_location = library_folder / folder / "winblender.ico"
         copyfile(icon, icon_location.as_posix())
