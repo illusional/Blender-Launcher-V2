@@ -230,3 +230,14 @@ def stable_cache_path():
 
 def bfa_cache_path():
     return Path(get_cache_path(), "bforartists_builds.json")
+
+
+def get_blender_config_folder():
+    platform = get_platform()
+
+    if platform == "Windows":
+        return Path(os.getenv("APPDATA"), "Blender Foundation", "Blender")
+    elif platform == "Linux":
+        return Path(os.path.expanduser("~/.config"), "blender")
+    elif platform == "macOS":
+        return Path(os.path.expanduser("~/Library/Application Support"), "Blender")

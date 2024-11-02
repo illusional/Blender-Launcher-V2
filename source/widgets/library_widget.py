@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from items.base_list_widget_item import BaseListWidgetItem
-from modules._platform import _call, get_platform
+from modules._platform import _call, get_platform, get_blender_config_folder
 from modules.build_info import (
     BuildInfo,
     LaunchMode,
@@ -229,9 +229,13 @@ class LibraryWidget(BaseBuildWidget):
         self.createShortcutAction = QAction("Create Shortcut")
         self.createShortcutAction.triggered.connect(self.create_shortcut)
 
-        self.showFolderAction = QAction("Show Folder")
-        self.showFolderAction.setIcon(self.parent.icons.folder)
-        self.showFolderAction.triggered.connect(self.show_folder)
+        self.showBuildFolderAction = QAction("Show Build Folder")
+        self.showBuildFolderAction.setIcon(self.parent.icons.folder)
+        self.showBuildFolderAction.triggered.connect(self.show_build_folder)
+
+        self.showConfigFolderAction = QAction("Show Config Folder")
+        self.showConfigFolderAction.setIcon(self.parent.icons.folder)
+        self.showConfigFolderAction.triggered.connect(self.show_config_folder)
 
         self.createSymlinkAction = QAction("Create Symlink")
         self.createSymlinkAction.triggered.connect(self.create_symlink)
@@ -287,8 +291,8 @@ class LibraryWidget(BaseBuildWidget):
             if regexp.search(self.branch):
                 self.showReleaseNotesAction.setText("Show Patch Details")
                 self.menu.addAction(self.showReleaseNotesAction)
-
-        self.menu.addAction(self.showFolderAction)
+        self.menu.addAction(self.showBuildFolderAction)
+        self.menu.addAction(self.showConfigFolderAction)
         self.menu.addAction(self.editAction)
         self.menu.addAction(self.deleteAction)
 
@@ -726,15 +730,37 @@ class LibraryWidget(BaseBuildWidget):
             os.symlink(target, link)
 
     @QtCore.pyqtSlot()
-    def show_folder(self):
+    def show_folder(self, folder_path: Path):
+        if not folder_path:
+            logger.debug("Path is empty or not specified.")
+            return
+
+        if not os.path.isdir(folder_path):
+            logger.error(f"Path {folder_path} do not exist.")
+            return
+
         platform = get_platform()
-        library_folder = Path(get_library_folder())
-        folder = library_folder / self.link
 
         if platform == "Windows":
-            os.startfile(folder.as_posix())
+            os.startfile(folder_path.as_posix())
         elif platform == "Linux":
-            subprocess.call(["xdg-open", folder.as_posix()])
+            subprocess.call(["xdg-open", folder_path.as_posix()])
+
+    def show_build_folder(self):
+        library_folder = Path(get_library_folder())
+        path = library_folder / self.link
+        self.show_folder(path)
+
+    def show_config_folder(self):
+        self.build_info is not None
+        version = self.build_info.subversion
+
+        if version.count(".") > 1:
+            version = version.rsplit(".", 1)[0]
+
+        version = version.split(" ", 1)[0]
+        path = Path(get_blender_config_folder() / version)
+        self.show_folder(path)
 
     def list_widget_deleted(self):
         self.list_widget = None
