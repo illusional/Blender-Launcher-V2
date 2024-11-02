@@ -514,11 +514,11 @@ def launch_build(info: BuildInfo, exe=None, launch_mode: LaunchMode | None = Non
     return _popen(args)
 
 
-def bfa_version_matcher(blender_version: Version) -> Version:
+def bfa_version_matcher(blender_version: Version) -> Version | None:
     versions = list(read_blender_version_list().keys())
-    blender_version = f"{blender_version.major}.{blender_version.minor}"
+    version_foldername = f"{blender_version.major}.{blender_version.minor}"
     for i, version in enumerate(versions):
-        if blender_version in version:
+        if version_foldername in version:
             if i + 1 < len(versions) and i > 0:
                 return Version.parse(versions[i - 1], optional_minor_and_patch=True)
             else:
