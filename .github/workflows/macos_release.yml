@@ -18,7 +18,7 @@ jobs:
       - name: GitHub Tag
         run: | 
           echo "Tag name from github.ref_name: ${{  github.ref_name }}"
-      - name: Setup build environment
+      - name: Setup + Build + Zip
         run: |
           # replace the pyqt requirements in pyproject.toml
           sed -i '' 's/pyqt5-qt5==/pyqt5-qt5>=/' pyproject.toml
@@ -32,8 +32,6 @@ jobs:
           echo "Building style"
           python build_style.py
 
-      - name: Build + zip
-        run: |
           echo "Building application"
           cd scripts
           bash build_mac.sh
