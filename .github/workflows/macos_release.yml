@@ -38,7 +38,7 @@ jobs:
 
           echo "Zipping to Blender_Launcher_${{ github.ref_name }}_macos_arm64.zip"
 
-          cd "..\dist\release\Blender Launcher.app"
+          cd ../dist/release
           # this zips just like the one in finder
           ditto -c -k --sequesterRsrc --keepParent "Blender Launcher.app" "Blender_Launcher.zip"
 
