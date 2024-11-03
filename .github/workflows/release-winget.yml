@@ -1,7 +1,7 @@
 name: Submit Winget Package to Windows Package Manager Community Repository
 on:
-  release:
-    types: [released]
+  # release:
+  #   types: [released]
   workflow_dispatch:
     inputs:
       tag_name:

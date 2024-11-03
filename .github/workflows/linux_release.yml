@@ -3,7 +3,7 @@ name: Linux Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "vXXX*.*.*"
 
 jobs:
   build:
