@@ -33,8 +33,9 @@ jobs:
           python build_style.py
 
           echo "Building application"
-          cd .\scripts\
+          cd scripts
           bash build_mac.sh
+
       - name: Zipping
         run: |
           echo "Zipping to Blender_Launcher_${{ github.ref_name }}_macos_arm64.zip"
