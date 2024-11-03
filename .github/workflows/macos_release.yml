@@ -25,7 +25,7 @@ jobs:
 
           echo "Venv setup"
           python -m venv .venv
-          .venv\Scripts\activate
+          source ./.venv/bin/activate
           echo "Installing dependencies"
           pip install -e ./
 
@@ -40,6 +40,7 @@ jobs:
           echo "Zipping to Blender_Launcher_${{ github.ref_name }}_macos_arm64.zip"
 
           ln ".\dist\release\Blender Launcher.app" "Blender Launcher.app"
+          # this zips is just like the one in finder
           ditto -c -k --sequesterRsrc --keepParent "Blender Launcher.app" "Blender_Launcher.zip"
       - name: Release
         uses: softprops/action-gh-release@v2
