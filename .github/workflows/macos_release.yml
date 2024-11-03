@@ -40,7 +40,10 @@ jobs:
 
           cd ../dist/release
           # this zips just like the one in finder
-          ditto -c -k --sequesterRsrc --keepParent "Blender Launcher.app" "Blender_Launcher.zip"
+          ditto -c -k --sequesterRsrc --keepParent "Blender Launcher.app" "Blender_Launcher_${{ github.ref_name }}_macos_arm64.zip"
+          mv "Blender_Launcher_${{ github.ref_name }}_macos_arm64.zip" ../..
+          cd ../..
+          ls -lGh ./
 
       - name: Release
         uses: softprops/action-gh-release@v2
